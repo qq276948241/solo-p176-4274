@@ -1,6 +1,6 @@
 class Api::V1::ProductsController < ApplicationController
   def index
-    scope = ProductSearchService.new.search(params)
+    scope = ProductQueryService.new(Product.all, params).call
 
     render_success(
       data: ActiveModelSerializers::SerializableResource.new(scope, each_serializer: ProductSerializer),
