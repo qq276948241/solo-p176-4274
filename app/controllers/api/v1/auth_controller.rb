@@ -43,7 +43,7 @@ class Api::V1::AuthController < ApplicationController
   def verify
     render_success(
       data: {
-        valid: current_token.valid?,
+        valid: current_token.alive?,
         expires_at: current_token.expires_at.iso8601,
         description: current_token.description
       },

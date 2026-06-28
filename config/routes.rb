@@ -27,6 +27,8 @@ Rails.application.routes.draw do
         end
       end
 
+      resources :products
+
       resources :bookings do
         member do
           post 'cancel'

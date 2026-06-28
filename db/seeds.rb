@@ -98,6 +98,29 @@ coaches.each do |coach|
 end
 puts "为教练创建了 #{CoachSchedule.count} 个排班"
 
+products_data = [
+  { title: '可调节哑铃套装', description: '专业级可调节哑铃，2-24kg自由切换，适合家庭健身', category: '器材', condition: 'new', price: 599.00 },
+  { title: '乳清蛋白粉', description: '高效增肌补剂，巧克力口味，每桶2.5kg', category: '补剂', condition: 'new', price: 299.00 },
+  { title: '瑜伽垫', description: '加厚防滑瑜伽垫，6mm厚度，适合瑜伽和拉伸训练', category: '配件', condition: 'new', price: 89.00 },
+  { title: '速干运动T恤', description: '透气速干面料，适合高强度训练', category: '服饰', condition: 'new', price: 129.00 },
+  { title: '二手杠铃杆', description: '奥杠标准杠铃杆，20kg，轻微使用痕迹', category: '器材', condition: 'like_new', price: 450.00 },
+  { title: 'BCAA支链氨基酸', description: '西瓜口味，训练中补充氨基酸防止肌肉流失', category: '补剂', condition: 'new', price: 159.00 },
+  { title: '健身手套', description: '防滑透气健身手套，半指设计，保护手掌', category: '服饰', condition: 'good', price: 49.00 },
+  { title: '弹力带套装', description: '5根不同阻力弹力带，适合拉伸和辅助训练', category: '配件', condition: 'new', price: 69.00 }
+]
+
+products_data.each do |attrs|
+  Product.find_or_create_by!(title: attrs[:title]) do |p|
+    p.description = attrs[:description]
+    p.category = attrs[:category]
+    p.condition = attrs[:condition]
+    p.price = attrs[:price]
+    p.status = 'active'
+    p.published_at = rand(1..30).days.ago
+  end
+end
+puts "创建了 #{Product.count} 个商品"
+
 puts '种子数据创建完成!'
 puts '=' * 50
 puts '默认登录账号: admin / admin123'

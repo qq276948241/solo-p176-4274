@@ -9,7 +9,7 @@ class Token < ApplicationRecord
     expires_at <= Time.current
   end
 
-  def valid?
+  def alive?
     !expired?
   end
 
