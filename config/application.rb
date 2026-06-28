@@ -1,6 +1,7 @@
 require_relative "boot"
 
 require "rails"
+require_relative "../lib/force_utf8_params_middleware"
 # Pick the frameworks you want:
 require "active_model/railtie"
 require "active_job/railtie"
@@ -40,5 +41,10 @@ module Project176
     # Middleware like session, flash, cookies can be added back manually.
     # Skip views, helpers and assets when generating a new resource.
     config.api_only = true
+
+    Encoding.default_external = Encoding::UTF_8
+    Encoding.default_internal = Encoding::UTF_8
+
+    config.middleware.insert_before 0, ForceUtf8ParamsMiddleware
   end
 end

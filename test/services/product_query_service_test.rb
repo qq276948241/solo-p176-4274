@@ -208,4 +208,77 @@ class ProductQueryServiceTest < ActiveSupport::TestCase
     assert_includes results.map(&:id), @dumbbell.id
     assert_equal 1, results.count
   end
+
+  test 'Chinese keyword with GBK-encoded bytes is forced to UTF-8 and matches' do
+    gbk_keyword = '哑铃'.encode('GBK')
+    results = ProductQueryService.new(Product.all, q: gbk_keyword).call
+    assert_includes results.map(&:id), @dumbbell.id,
+      "GBK-encoded Chinese keyword should be converted to UTF-8 and match"
+  end
+
+  test 'Chinese keyword with ASCII-8BIT encoding is forced to UTF-8 and matches' do
+    binary_keyword = '哑铃'.b
+    results = ProductQueryService.new(Product.all, q: binary_keyword).call
+    assert_includes results.map(&:id), @dumbbell.id,
+      "ASCII-8BIT encoded Chinese keyword should be forced to UTF-8 and match"
+  end
+
+  test 'English keyword still works after encoding fix' do
+    results = ProductQueryService.new(Product.all, q: 'Whey').call
+    assert_empty results
+  end
+
+  test 'Chinese and English keywords do not interfere with each other' do
+    cn_results = ProductQueryService.new(Product.all, q: '哑铃').call
+    en_results = ProductQueryService.new(Product.all, q: '手套').call
+
+    assert_includes cn_results.map(&:id), @dumbbell.id
+    assert_not_includes cn_results.map(&:id), @gloves.id
+    assert_includes en_results.map(&:id), @gloves.id
+    assert_not_includes en_results.map(&:id), @dumbbell.id
+  end
+
+  test 'Chinese partial character match works' do
+    results = ProductQueryService.new(Product.all, q: '铃').call
+    assert_includes results.map(&:id), @dumbbell.id
+  end
+
+  test 'Chinese keyword matches description' do
+    results = ProductQueryService.new(Product.all, q: '家庭健身').call
+    assert_includes results.map(&:id), @dumbbell.id
+  end
+
+  test 'Chinese category filter works after encoding fix' do
+    gbk_category = '器材'.encode('GBK')
+    results = ProductQueryService.new(Product.all, category: gbk_category).call
+    assert_includes results.map(&:id), @dumbbell.id
+  end
+
+  test 'ensure_utf8 returns nil for nil input' do
+    svc = ProductQueryService.new
+    assert_nil svc.send(:ensure_utf8, nil)
+  end
+
+  test 'ensure_utf8 preserves valid UTF-8 strings' do
+    svc = ProductQueryService.new
+    result = svc.send(:ensure_utf8, '哑铃')
+    assert_equal Encoding::UTF_8, result.encoding
+    assert_equal '哑铃', result
+  end
+
+  test 'ensure_utf8 converts GBK to UTF-8' do
+    svc = ProductQueryService.new
+    gbk_str = '哑铃'.encode('GBK')
+    result = svc.send(:ensure_utf8, gbk_str)
+    assert_equal Encoding::UTF_8, result.encoding
+    assert_equal '哑铃', result
+  end
+
+  test 'ensure_utf8 handles ASCII-8BIT binary with Chinese content' do
+    svc = ProductQueryService.new
+    binary_str = '哑铃'.b
+    result = svc.send(:ensure_utf8, binary_str)
+    assert_equal Encoding::UTF_8, result.encoding
+    assert_equal '哑铃', result
+  end
 end

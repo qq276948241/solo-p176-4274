@@ -25,6 +25,8 @@ class ProductQueryService
 
   def filter_by_keyword(scope, keyword)
     return scope if keyword.nil?
+
+    keyword = ensure_utf8(keyword)
     return scope if keyword.strip.empty?
 
     term = "%#{sanitize(keyword.strip)}%"
@@ -33,6 +35,8 @@ class ProductQueryService
 
   def filter_by_category(scope, category)
     return scope if category.nil?
+
+    category = ensure_utf8(category)
     return scope if category.strip.empty?
 
     scope.by_category(category.strip)
@@ -40,6 +44,8 @@ class ProductQueryService
 
   def filter_by_condition(scope, condition)
     return scope if condition.nil?
+
+    condition = ensure_utf8(condition)
     return scope if condition.strip.empty?
 
     scope.by_condition(condition.strip)
@@ -47,6 +53,8 @@ class ProductQueryService
 
   def filter_by_status(scope, status)
     return scope if status.nil?
+
+    status = ensure_utf8(status)
     return scope if status.strip.empty?
 
     scope.where(status: status.strip)
@@ -88,6 +96,24 @@ class ProductQueryService
       params.to_unsafe_h.with_indifferent_access
     else
       params.with_indifferent_access
+    end
+  end
+
+  def ensure_utf8(value)
+    return value if value.nil?
+
+    str = value.to_s
+    return str if str.encoding == Encoding::UTF_8 && str.valid_encoding?
+
+    if str.encoding == Encoding::ASCII_8BIT
+      forced = str.dup.force_encoding('UTF-8')
+      return forced if forced.valid_encoding?
+    end
+
+    if str.valid_encoding?
+      str.encode('UTF-8', invalid: :replace, undef: :replace)
+    else
+      str.dup.force_encoding('UTF-8')
     end
   end
 end
